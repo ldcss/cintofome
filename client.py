@@ -2,19 +2,22 @@ from socket import *
 from rdt import *
 
 #instanciando um cliente
-RDTSocket = Rdt()
+RDTSocket = RDT()
 
 #mensagem vazia pra o contato com servidor
 data = ''
 
-
 while True:
-	msg = RDTSocket.receive()
+  
+  RDTSocket.send_pkg(msg.encode())
 
-	#receber 'ok', encerra a conexão
-	if('ok' == msg.decode('utf-8')):
-			break
-	data = RDTSocket.receive()
+  msg = RDTSocket.receive()
+
+  #receber 'ok', encerra a conexão
+  if('ok' == msg.decode('utf-8')):
+    break
+  
+  data = input(msg.decode('utf8'))
 
 msg = RDTSocket.receive()
 print(msg.decode())
