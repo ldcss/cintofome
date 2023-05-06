@@ -9,17 +9,17 @@ data = ''
 
 while True:
   
-  RDTSocket.send_pkg(msg.encode())
+  RDTSocket.send(data.encode())
 
   msg = RDTSocket.receive()
 
   #receber 'ok', encerra a conexão
-  if('ok' == msg.decode('utf-8')):
+  if('ok' == msg):
     break
   
-  data = input(msg.decode('utf8'))
+  data = input(msg)
 
 msg = RDTSocket.receive()
-print(msg.decode())
+print(msg)
 
 RDTSocket.close_connection()

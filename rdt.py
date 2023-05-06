@@ -29,88 +29,17 @@ class RDT:
     else:
         """ print("Sending to server") """
         self.UDPSocket.sendto(data, self.addressPort)
-
-  def send_pkg(self, data):
-    data = self.create_header(data.decode())
-    ack = False
-
-        #envia o pacote enquanto o bit ACK for falso
-    while not ack:
-      self.send(data)
-
-      try:
-        data, self.sender_addr = self.UDPSocket.recvfrom(self.bufferSize)
-      except socket.timeout:
-            print("Did not receive ACK. Sending again.")
-      else:
-        ack = self.rcv_ack(data)
-
-  def rcv_pkg(self, data):
-    data = eval(data.decode())
-    seq_num = data['seq']
-    checksum = data['checksum']
-    payload = data['payload']
-
-    #Verifica se a mensagem chegou por completo ao checar o checksum e sinaliza ACK ou NACK
-    if self.checksum_(checksum, payload) and seq_num == self.seq_num:
-      self.send_ack(1)
-      self.seq_num = 1 - self.seq_num
-      return payload
-    else:
-      self.send_ack(0)
-      return ""
   
   #Funcao de recepcao de pacotes entre cliente e servidor
   def receive(self):
     """ print("Receveing package") """
     self.UDPSocket.settimeout(20.0) 
     data, self.sender_addr = self.UDPSocket.recvfrom(self.bufferSize)
-    data = self.rcv_pkg(data)
 
     if data != "":
-      buffer = data
       
       """ print("Received") """
-      return buffer.encode()
-
-  #Funcao que sinaliza no cabecalho o bit ACK ou NACK    
-  def send_ack(self, ack):
-    if ack:
-        data = self.create_header("ACK")
-    else:
-        data = self.create_header("NACK")
-    self.send(data)
-
-  #Funcao que verifica o bit ACK recebido, e se o bit eh valido
-  def rcv_ack(self, data):
-    data = eval(data.decode())
-    seq_num = data['seq']
-    checksum = data['checksum']
-    payload = data['payload']
-
-    if self.checksum_(checksum, payload) and seq_num == self.seq_num and payload == "ACK":
-      self.seq_num = 1 - self.seq_num
-      return True
-    else:
-      return False
-
-  #Funcao que chama o checksum para fazer a verificacao
-  def checksum_(self, chcksum, payload):
-    if checksum(payload) == chcksum:
-        return True
-    else:
-        return False
-
-  #Funcao que cria o cabecalho do pacote
-  def create_header(self, data):
-
-    chcksum = checksum(data)
-
-    return str({
-        'seq': self.seq_num,
-        'checksum': chcksum,
-        'payload' : data
-    }).encode()
+      return data.decode('utf-8')
 
   #Funcao que encerra a conexao
   def close_connection(self):
