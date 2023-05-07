@@ -120,14 +120,14 @@ while True:
         allOrders(table,name,data)
 
         resp = hour() + " CINtofome : Gostaria de mais algum item? (número ou por extenso) \n" + hour() +" " + name + ": "
-        RDTSocket.send(resp.encode('utf-8'))
+        RDTSocket.send(resp)
         data = RDTSocket.receive()
         data = extract_packet(data.encode()).data 
 
         if(str(data) == "nao"):
           flag = False
       resp = hour() + " CINtofome: É pra já! \n" + hour() +" " + name + ": "
-      RDTSocket.send(resp.encode('utf-8'))
+      RDTSocket.send(resp)
       payment = False
 
     #opção para a conta ser apenas do cliente em contato com o servidor
