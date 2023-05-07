@@ -2,6 +2,7 @@ from socket import *
 from rdt import *
 from datetime import *
 from utils import *
+from aux_functions import extract_packet
 
 #pega a hora e formata (horario)
 def hour():
@@ -42,28 +43,33 @@ def getOrdersByClient(table, client):
 #objeto RDT instanciado, indicando ser um servidor
 RDTSocket = RDT(1)
 data = RDTSocket.receive()
+data = extract_packet(data.encode()).data
 
 #espera a mensagem 'chefia'
 data = hour() + " cliente: "
-RDTSocket.send(data.encode('utf-8'))
+RDTSocket.send(data)
 data = RDTSocket.receive()
+data = extract_packet(data.encode()).data
 
 #continua o mesmo processo, enquanto não receber um `chefia`
 while(data != "chefia"):
   data = hour() + " cliente:"
-  RDTSocket.send(data.encode('utf-8'))
+  RDTSocket.send(data)
   data = RDTSocket.receive()
+  data = extract_packet(data.encode()).data
 
 #espera o cliente pedir uma mesa, e armazena a info
 data = hour() + " CINtofome: Digite Sua mesa\n" + hour() + " cliente: "
-RDTSocket.send(data.encode('utf-8'))
+RDTSocket.send(data)
 data = RDTSocket.receive()
+data = extract_packet(data.encode()).data
 table = data
 
 #espera o cliente dizer o nome, e armazena a info
 data = hour() + " CINtofome: Digite Seu nome: \n" + hour() + " cliente: "
-RDTSocket.send(data.encode('utf-8'))
+RDTSocket.send(data)
 data = RDTSocket.receive()
+data = extract_packet(data.encode()).data
 name = data
 
 #tupla com IP e porta do cliente
@@ -87,7 +93,7 @@ orders[table].update({
 
 #informa os comandos disponiveis do ChatBot
 data = f"{hour()} CINtofome: Digite uma das opcoes a seguir (ou numero ou por extenso) \n {options}\n{hour()} {name}: "
-RDTSocket.send(data.encode('utf-8'))
+RDTSocket.send(data)
 
 payment = True
 
@@ -95,17 +101,19 @@ payment = True
 while True:
   #recebe o comando do cliente
   data = RDTSocket.receive()
+  data = extract_packet(data.encode()).data
 
   match data:
     #opção para mostrar o cardápio
     case '1':
       res = hour() + " CINtofome:\n" + showMenu() + hour() + " " + name + ": "
-      RDTSocket.send(res.encode('utf-8'))
+      RDTSocket.send(res)
     #opção para fazer o pedido
-    case '2':
+    case 'pedir':
       res = hour() + " CINtofome: Digite o primeiro item que gostaria (número) \n" + hour() +" " + name +": "  
-      RDTSocket.send(res.encode('utf-8'))
+      RDTSocket.send(res)
       data = RDTSocket.receive()
+      data = extract_packet(data.encode()).data
       #entra num loop, enquanto o cliente não encerrar o pedido com o comando "não", o server continua perguntando se tem mais algo
       flag = True
       while flag:
@@ -113,7 +121,8 @@ while True:
 
         resp = hour() + " CINtofome : Gostaria de mais algum item? (número ou por extenso) \n" + hour() +" " + name + ": "
         RDTSocket.send(resp.encode('utf-8'))
-        data = RDTSocket.receive() 
+        data = RDTSocket.receive()
+        data = extract_packet(data.encode()).data 
 
         if(str(data) == "nao"):
           flag = False
@@ -126,7 +135,7 @@ while True:
       total,value = getOrdersByClient(table,name)
       res = f"CINtofome: Sua conta total é:\n{total}-------------\nValor: {str(value)}"
       res += f"\n{hour()} {name}: "
-      RDTSocket.send(res.encode('utf-8'))
+      RDTSocket.send(res)
 
     #opção para a conta ser de toda a mesa, na qual está sentado o cliente em contato com o servidor
     case '4':
@@ -140,7 +149,7 @@ while True:
             res += f"\n{client}\n{total}-------------\nValor: {str(value)}\n-------------"
         res += f"\nValor total da mesa: {total_orders}" 
         res += f"\n{hour()} {name}: "
-      RDTSocket.send(res.encode('utf-8'))
+      RDTSocket.send(res)
 
     #opção para que seja realizado o pagamento
     case '5':
@@ -152,8 +161,9 @@ while True:
       #mostra o valor tal da conta do cliente, e da mesa. e aguarda o comando de pagamento
       base = f"Sua conta foi {bill} e a da mesa foi {closed}. Digite o valor a ser pago. \n{hour()} {name}: "
       res = f"{hour()} CINtofome: {base}"
-      RDTSocket.send(res.encode('utf-8'))
-      data = RDTSocket.receive() 
+      RDTSocket.send(res)
+      data = RDTSocket.receive()
+      data = extract_packet(data.encode()).data 
 
       #loop para validação do pagamento 
       while True:
@@ -201,8 +211,9 @@ while True:
         if valido:
           res += f"Deseja confirmar o pagamento? (digite sim para confirmar)\n{hour()} {name}: "
 
-        RDTSocket.send(res.encode('utf-8'))
+        RDTSocket.send(res)
         data = RDTSocket.receive()
+        data = extract_packet(data.encode()).data
 
       res += f"{hour()} {name}: "
 
@@ -211,7 +222,7 @@ while True:
       #se não tiver pago, nn permite encerrar a conexão
       if(not payment):
         res = hour() + " " + name + ": Você ainda não pagou sua conta\n" + hour() + " " + name + ": "
-        RDTSocket.send(res.encode('utf-8'))
+        RDTSocket.send(res)
 
       #se tiver pago, libera o cliente e encerra conexão
       if(payment):
@@ -222,6 +233,6 @@ while True:
 
 # se despede termina a conexão
 data = hour() + " " + name + ": Volte sempre ^^ \n"
-RDTSocket.send(data.encode('utf-8'))
+RDTSocket.send(data)
 
 RDTSocket.close_connection()
