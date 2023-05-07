@@ -31,12 +31,11 @@ def allOrders(table, client, data):
   
 #retorna os pedidos de um cliente específico, e o valor total do pedidos (pedir_conta)	
 def getOrdersByClient(table, client):
-  print('to no get orders')
   total = '\n'
   value = orders[table][client]["comanda"]
 
   for produto in orders[table][client]["pedidos"]:
-    total += f"{produto[0]} {str(produto[1])} '\n"
+    total += f"{produto[0]} {str(produto[1])} \n"
   
   return total,value
 
@@ -99,11 +98,11 @@ while True:
 
   match data:
     #opção para mostrar o cardápio
-    case '1' | 'cardápio':
+    case '1':
       res = hour() + " CINtofome:\n" + showMenu() + hour() + " " + name + ": "
       RDTSocket.send(res.encode('utf-8'))
     #opção para fazer o pedido
-    case '2' | 'pedir':
+    case '2':
       res = hour() + " CINtofome: Digite o primeiro item que gostaria (número) \n" + hour() +" " + name +": "  
       RDTSocket.send(res.encode('utf-8'))
       data = RDTSocket.receive()
@@ -117,22 +116,21 @@ while True:
         data = RDTSocket.receive() 
 
         if(str(data) == "nao"):
-          print('quebra aqui?')
           flag = False
       resp = hour() + " CINtofome: É pra já! \n" + hour() +" " + name + ": "
       RDTSocket.send(resp.encode('utf-8'))
       payment = False
 
     #opção para a conta ser apenas do cliente em contato com o servidor
-    case '3' | 'conta individual':
+    case '3':
       total,value = getOrdersByClient(table,name)
       res = f"CINtofome: Sua conta total é:\n{total}-------------\nValor: {str(value)}"
       res += f"\n{hour()} {name}: "
       RDTSocket.send(res.encode('utf-8'))
 
     #opção para a conta ser de toda a mesa, na qual está sentado o cliente em contato com o servidor
-    case '4'| 'conta da mesa':
-      total = str(orders[table]["total"])
+    case '4':
+      total_orders = str(orders[table]["total"])
       res = f"CINtofome:\n"
 
       for client in orders[table]:
@@ -140,12 +138,12 @@ while True:
           total,value = getOrdersByClient(table,client)
           if value > 0:
             res += f"\n{client}\n{total}-------------\nValor: {str(value)}\n-------------"
-
-        res += f"\nValor total da mesa: {total}" 
+        res += f"\nValor total da mesa: {total_orders}" 
         res += f"\n{hour()} {name}: "
+      RDTSocket.send(res.encode('utf-8'))
 
     #opção para que seja realizado o pagamento
-    case '6':
+    case '5':
       bill = orders[table][name]["comanda"]
       closed = orders[table]["total"]
       valid = False
@@ -183,18 +181,21 @@ while True:
           res = f"{hour()} CINtofome: Conta paga, obrigado! \n" 
           payment = True
           break
-
-        if (float(data) > bill) and float(data) <= total: # Se tiver inserido um valor válido 
+        # Se tiver inserido um valor válido
+        if (float(data) > bill) and float(data) <= total:  
           dif = float(data) - bill
           res = f"{hour()} Cintofome: Você está pagando {dif} a mais que sua conta.\n{hour()} Cintofome: O valor excedente será distribuído.\n{hour()} Cintofome: "
           valido = True
           RDTSocket.send(resp.encode('utf-8'))
-        elif (float(data) == bill): # Pagamento exato
+        # Pagamento exato
+        elif (float(data) == bill): 
           res = f"{hour()} Cintofome: "
           valido = True
-        elif (float(data) > total): # Se tiver inserido um valor maior do que a conta da mesa
+        # Se tiver inserido um valor maior do que a conta da mesa
+        elif (float(data) > total): 
           res = f"{hour()} Cintofome: Valor maior do que o esperado, no momento não aceitamos gorjetas. \n" + base
-        elif (float(data) < bill): # Se tiver inserido um valor menor que a conta individual
+        # Se tiver inserido um valor menor que a conta individual
+        elif (float(data) < bill): 
           res = f"{hour()} Cintofome: Pagamento menor que o devido, nao fazemos fiado. \n" + base
 
         if valido:
@@ -206,10 +207,11 @@ while True:
       res += f"{hour()} {name}: "
 
     #opção para levantar e encerrar conexão
-    case ('6' | 'levantar'):
+    case ('6'):
       #se não tiver pago, nn permite encerrar a conexão
       if(not payment):
         res = hour() + " " + name + ": Você ainda não pagou sua conta\n" + hour() + " " + name + ": "
+        RDTSocket.send(res.encode('utf-8'))
 
       #se tiver pago, libera o cliente e encerra conexão
       if(payment):
