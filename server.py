@@ -126,8 +126,8 @@ while True:
 
         if(str(data) == "nao"):
           flag = False
-      resp = hour() + " CINtofome: É pra já! \n" + hour() +" " + name + ": "
-      RDTSocket.send(resp.encode('utf-8'))
+      res = hour() + " CINtofome: É pra já! \n" + hour() +" " + name + ": "
+      RDTSocket.send(res.encode('utf-8'))
       payment = False
 
     #opção para a conta ser apenas do cliente em contato com o servidor
@@ -168,7 +168,8 @@ while True:
       #loop para validação do pagamento 
       while True:
         if str(data) == 'nao':  
-          res = f"{hour()} CINtofome: Operação de pagamento cancelada!"
+          res = f"{hour()} CINtofome: Operação de pagamento cancelada!\n"
+          RDTSocket.send(res.encode('utf-8'))
           break
 
         if (valid and str(data) == 'sim'):   
@@ -188,27 +189,28 @@ while True:
             for client in pendingBill:
               orders[table][client]["comanda"] -= dif
 
-          res = f"{hour()} CINtofome: Conta paga, obrigado! \n" 
+          res = f"{hour()} CINtofome: Conta paga, obrigado! \n{hour()} {name}: " 
           payment = True
+          RDTSocket.send(res.encode('utf-8'))
           break
         # Se tiver inserido um valor válido
-        if (float(data) > bill) and float(data) <= total:  
+        if (float(data) > bill) and float(data) <= closed:  
           dif = float(data) - bill
           res = f"{hour()} Cintofome: Você está pagando {dif} a mais que sua conta.\n{hour()} Cintofome: O valor excedente será distribuído.\n{hour()} Cintofome: "
-          valido = True
-          RDTSocket.send(resp.encode('utf-8'))
+          valid = True
+          RDTSocket.send(res.encode('utf-8'))
         # Pagamento exato
         elif (float(data) == bill): 
           res = f"{hour()} Cintofome: "
-          valido = True
+          valid = True
         # Se tiver inserido um valor maior do que a conta da mesa
-        elif (float(data) > total): 
+        elif (float(data) > closed): 
           res = f"{hour()} Cintofome: Valor maior do que o esperado, no momento não aceitamos gorjetas. \n" + base
         # Se tiver inserido um valor menor que a conta individual
         elif (float(data) < bill): 
           res = f"{hour()} Cintofome: Pagamento menor que o devido, nao fazemos fiado. \n" + base
 
-        if valido:
+        if valid:
           res += f"Deseja confirmar o pagamento? (digite sim para confirmar)\n{hour()} {name}: "
 
         RDTSocket.send(res)
@@ -228,7 +230,7 @@ while True:
       if(payment):
         res = "ok"
         del orders[table][name]
-        RDTSocket.send(resp.encode('utf-8'))
+        RDTSocket.send(res.encode('utf-8'))
         break
 
 # se despede termina a conexão
