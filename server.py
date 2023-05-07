@@ -105,11 +105,11 @@ while True:
 
   match data:
     #opção para mostrar o cardápio
-    case '1':
+    case '1' | 'cardapio':
       res = hour() + " CINtofome:\n" + showMenu() + hour() + " " + name + ": "
       RDTSocket.send(res)
     #opção para fazer o pedido
-    case 'pedir':
+    case '2' | 'pedir':
       res = hour() + " CINtofome: Digite o primeiro item que gostaria (número) \n" + hour() +" " + name +": "  
       RDTSocket.send(res)
       data = RDTSocket.receive()
@@ -131,14 +131,14 @@ while True:
       payment = False
 
     #opção para a conta ser apenas do cliente em contato com o servidor
-    case '3':
+    case '3' | 'conta individual':
       total,value = getOrdersByClient(table,name)
       res = f"CINtofome: Sua conta total é:\n{total}-------------\nValor: {str(value)}"
       res += f"\n{hour()} {name}: "
       RDTSocket.send(res)
 
     #opção para a conta ser de toda a mesa, na qual está sentado o cliente em contato com o servidor
-    case '4':
+    case '4' | 'nao fecho com robo, chame seu gerente':
       total_orders = str(orders[table]["total"])
       res = f"CINtofome:\n"
 
@@ -218,7 +218,7 @@ while True:
       res += f"{hour()} {name}: "
 
     #opção para levantar e encerrar conexão
-    case ('6'):
+    case '6' | 'conta da mesa':
       #se não tiver pago, nn permite encerrar a conexão
       if(not payment):
         res = hour() + " " + name + ": Você ainda não pagou sua conta\n" + hour() + " " + name + ": "
