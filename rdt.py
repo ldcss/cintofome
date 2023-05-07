@@ -33,7 +33,7 @@ class RDT:
   #Funcao de recepcao de pacotes entre cliente e servidor
   def receive(self):
     """ print("Receveing package") """
-    self.UDPSocket.settimeout(20.0) 
+    self.UDPSocket.settimeout(500.0) 
     data, self.sender_addr = self.UDPSocket.recvfrom(self.bufferSize)
 
     if data != "":
